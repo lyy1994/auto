@@ -15,7 +15,7 @@ It also depends on the following packages:
 
 ## Installation
 ```commandline
-git clone ?
+git clone https://github.com/lyy1994/auto.git
 cd auto
 pip install -r requirements.txt
 ```
