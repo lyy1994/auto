@@ -109,7 +109,7 @@ if __name__ == "__main__":
     socket = context.socket(zmq.REQ)
     if args.port is None:
         # if not specify, then load from the server setting
-        with open("config.json", 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.json"), 'r') as f:
             args.port = json.load(f)["port"]
     socket.bind("tcp://{}:{}".format(args.ip, args.port))
 
