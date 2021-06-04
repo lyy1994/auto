@@ -30,15 +30,15 @@ def run(message: dict):
     global counter
     mq_lock.acquire()
     if mq.qsize() >= args.max_run:
-        msg = "Reaching the maximum number ({}) of pending commands to run!".format(args.max_run)
+        msg = "Reaching the maximum number ({}) of pending tasks to run!".format(args.max_run)
         logger.warning(msg)
         socket.send_string(msg)
         mq_lock.release()
         return
     message["id"] = counter
-    mq.put(message)
+    mq.put(utils.PrioritizedItem(message["priority"], message))
     mq_lock.release()
-    socket.send_string("Command id: {}".format(counter))
+    socket.send_string("Task id: {}".format(counter))
     counter = (counter + 1) % args.max_run
 
 
@@ -46,14 +46,17 @@ def run(message: dict):
 def status(message: dict):
     # running CMDs
     running = [utils.format_msg(m) for m in runner.running_status()]
-    # pending CMDs in runner
-    pending = [utils.format_msg(m) for m in runner.pending_status()]
+    pending = []
     # pending CMDs in message queue
     mq_lock.acquire()
-    for _ in range(mq.qsize()):
-        m: dict = mq.get()
+    temp = []
+    while not mq.empty():
+        m: utils.PrioritizedItem = mq.get()
+        temp.append(m)
+        pending.append(utils.format_msg(m.item))
+    for m in temp:
         mq.put(m)
-        pending.append(utils.format_msg(m))
+    del temp
     mq_lock.release()
     socket.send_string("Runner Status:\nRunning CMDs:\n" + "\n".join(running) + "\nPending CMDs:\n" + "\n".join(pending))
 
@@ -61,16 +64,19 @@ def status(message: dict):
 @utils.register_to("cancel", _OPTION_IMPL)
 def cancel(message: dict):
     idx = message["id"]
-    # cancel CMD pending in runner
-    msg = [utils.format_msg(m) for m in runner.cancel(idx)]
+    msg = []
     # cancel CMD pending in message queue
     mq_lock.acquire()
-    for _ in range(mq.qsize()):
-        m = mq.get()
-        if m["id"] != idx:
-            mq.put(m)
+    temp = []
+    while not mq.empty():
+        m: utils.PrioritizedItem = mq.get()
+        if m.item["id"] != idx:
+            temp.append(m)
         else:
-            msg.append(utils.format_msg(m))
+            msg.append(utils.format_msg(m.item))
+    for m in temp:
+        mq.put(m)
+    del temp
     mq_lock.release()
     socket.send_string("\nCanceled CMDs:\n" + "\n".join(msg))
 
@@ -102,10 +108,10 @@ if __name__ == "__main__":
         "--gpus", required=True, type=str, help="Only find free GPU among these GPUs, e.g., '0,1,2,3,4,5,6,7'."
     )
     parser.add_argument(
-        "--max-run", default=10000, type=int, help="The maximum number of pending commands to run."
+        "--max-run", default=10000, type=int, help="The maximum number of pending tasks to run."
     )
     parser.add_argument(
-        "--num-records", default=10000, type=int, help="The maximum number of records of finished commands are kept."
+        "--num-records", default=10000, type=int, help="The maximum number of records of finished tasks are kept."
     )
     parser.add_argument(
         "--port", default=25647, type=int, help="The port to communicate with the client."
@@ -118,6 +124,9 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--max-memory", default=0.1, type=float, help="The maximum memory of GPUs to be considered as not available."
+    )
+    parser.add_argument(
+        "--check-interval", default=1, type=int, help="The time interval of checking available GPU resource."
     )
     args = parser.parse_args()
 
@@ -135,7 +144,7 @@ if __name__ == "__main__":
     socket.connect("tcp://localhost:{}".format(args.port))
 
     # set up task runner
-    mq = queue.Queue()
+    mq = queue.PriorityQueue()
     mq_lock = threading.Lock()
     runner = Consumer(hosted_gpus, mq, mq_lock, args.num_records)
     runner.start()

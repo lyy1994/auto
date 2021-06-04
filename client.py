@@ -26,6 +26,7 @@ def run(args: argparse.Namespace):
         "option": args.option,
         "n_gpus": args.n_gpus,
         "cmd": args.cmd,
+        "priority": args.priority,
     }
 
 
@@ -81,24 +82,28 @@ if __name__ == "__main__":
         "--n-gpus", default=1, type=int, help="The number of GPUs you want to allocate."
     )
     parser_run.add_argument(
-        "--cmd", required=True, type=str, help="The command you want to run."
+        "--cmd", required=True, type=str, help="The task you want to run."
+    )
+    parser_run.add_argument(
+        "--priority", "-p", default=10, type=int,
+        help="The priority of the task you want to run. Smaller is higher."
     )
     # for status option
     parser_status = subparsers.add_parser('status', help='Check task status.')
     # for cancel option
     parser_cancel = subparsers.add_parser('cancel', help='Cancel a pending task.')
     parser_cancel.add_argument(
-        "--id", required=True, type=int, help="The command id you want to cancel."
+        "--id", required=True, type=int, help="The task id you want to cancel."
     )
     # for history option
     parser_history = subparsers.add_parser('history', help='Show finished tasks.')
     parser_history.add_argument(
-        "-n", default=-1, type=int, help="The number of finished CMDs you want to show."
+        "--num-records", "-n", default=-1, type=int, help="The number of finished CMDs you want to show."
     )
     # for kill option
-    parser_history = subparsers.add_parser('kill', help='Show finished tasks.')
+    parser_history = subparsers.add_parser('kill', help='Kill running tasks.')
     parser_history.add_argument(
-        "--id", required=True, type=int, help="The command id you want to kill."
+        "--id", required=True, type=int, help="The task id you want to kill."
     )
 
     args = parser.parse_args()

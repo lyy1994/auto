@@ -1,4 +1,6 @@
 import GPUtil
+from dataclasses import dataclass, field
+from typing import Any
 
 
 _limit = 1
@@ -18,6 +20,12 @@ def register_to(name: str, mapping: dict):
         mapping[name] = fn
         return fn
     return wrapper
+
+
+@dataclass(order=True)
+class PrioritizedItem:
+    priority: int
+    item: Any = field(compare=False)
 
 
 def get_free_gpus(host_ids: list, exclude_ids: list) -> list:
