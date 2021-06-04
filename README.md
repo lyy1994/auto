@@ -26,14 +26,13 @@ Before using this tool to automatically manage your tasks and GPUs, you need to 
 
 ```commandline
 nohup python server.py \
-    --gpus 0,1,2,3 \
+    --gpus 0 1 2 3 \
     --max-run 10000 \
     --num-records 10000 \
     --port 25647 \
     --limit 8 \
     --max-load 0.1 \
-    --max-memory 0.1 \
-    --check-interval 1 &
+    --max-memory 0.1 &
 ```
 
 - `--gpus`: **Required**, the ids of GPUs you want to manage by the server.
@@ -43,7 +42,6 @@ nohup python server.py \
 - `--limit`: Optional, the maximum number of available GPUs allocated to each task, default is *min(8, #gpus)*.
 - `--max-load`: Optional, the maximum percentage of load for a GPU to be considered as *not available*, default is *0.1*.
 - `--max-memory`: Optional, the maximum percentage of memory for a GPU to be considered as *not available*, default is *0.1*.
-- `--check-interval`: Optional, the time interval of checking available GPU resource, default is *1*.
 
 **TODO**: 
 - [ ] Logging status, outputs, etc. to files (for debugging, restoration, etc.).
@@ -66,7 +64,7 @@ python client.py run \
 - `--priority` or `-p`: Optional, the priority of the submitted task, default is *10*. The smaller the (int) number is, the higher the priority.
 
 **IMPORTANT NOTE**:
-1. The `run` option simply runs tasks for you and it does not check the status of them, i.e., whether they are success or not. It is your responsibility to check the final results (success or not) of your tasks.
+1. The `run` option simply runs tasks for you and it cannot inform you the result, i.e., whether they are success or not. It is your responsibility to check the final results (success or not) of your tasks, e.g., setting `-f` in the `history` option.
 2. The commands to run your tasks is passed to the server in a string format via `--cmd`. It is thus important to take care of the quotation mark in your command string if there is any.
 
 [comment]: <> (3. You should not run a shell script via `--cmd`, otherwise the server will not be able to restrict the task to run on the available GPUs &#40;it is implemented via `export CUDA_VISIBLE_DEVICES=...` and a shell script will open a new shell that does not contain `CUDA_VISIBLE_DEVICES` in the current shell&#41;. One way to resolve this issue is to pass `$CUDA_VISIBLE_DEVICES` to your shell script as an argument and write `export CUDA_VISIBLE_DEVICES=...` within your script.)
@@ -83,7 +81,6 @@ python client.py status
 
 **TODO**: 
 - [ ] Better formatting of the returned results, e.g., as a table.
-- [ ] Return the records of failed tasks.
 
 #### Cancel a pending task
 You can cancel a submitted but pending task via its ID in the `cancel` option, which can be retrieved from the output of `run` or `status`. The server will return the information about the cancelled task, including its exact commands, the required number of GPUs, etc.
@@ -93,10 +90,7 @@ python client.py cancel \
     --id 1
 ```
 
-- `--id` or `-i`: **Required**, the task ID you want to cancel.
-
-**TODO**: 
-- [ ] Support cancelling multiple tasks via a list of ids, e.g., `1,2,3`.
+- `--id` or `-i`: **Required**, the task ID you want to cancel. If you want to cancel multiple tasks, just put all their IDs in, e.g., `--id 1 2 3`.
 
 #### Kill a running task
 You can kill a running task via its ID in the `kill` option, which can be retrieved from the output of `run` or `status`. The server will return the information about the killed task, including its exact commands, the required number of GPUs, etc.
@@ -106,13 +100,10 @@ python client.py kill \
     --id 1
 ```
 
-- `--id` or `-i`: **Required**, the task ID you want to cancel.
-
-**TODO**: 
-- [ ] Support killing multiple tasks via a list of ids, e.g., `1,2,3`.
+- `--id` or `-i`: **Required**, the task ID you want to cancel. If you want to kill multiple tasks, just put all their IDs in, e.g., `--id 1 2 3`.
 
 #### View finished tasks
-You can view the finished tasks via the `history` option. The server will return the information about the finished tasks (either killed or done normally), including its ID, the time it finished, its exact commands, the required number of GPUs, etc.
+You can view the finished tasks via the `history` option. The server will return the information about the finished tasks (only the succeed ones), including its ID, the time it finished, its exact commands, the required number of GPUs, etc.
 
 ```commandline
 python client.py history \
@@ -120,6 +111,8 @@ python client.py history \
 ```
 
 - `--num-records` or `-n`: Optional, the number of the most recent finished tasks you want to show, default is `-1` (show all).
+
+If you want to take a look on the failed tasks, please add `--fail` or `-f`, e.g., `python client.py history -f`.
 
 **IMPORTANT NOTE**:
 1. The cancelled tasks will not be shown in the history.

@@ -58,19 +58,19 @@ def status(message: dict):
         mq.put(m)
     del temp
     mq_lock.release()
-    socket.send_string("Runner Status:\nRunning CMDs:\n" + "\n".join(running) + "\nPending CMDs:\n" + "\n".join(pending))
+    socket.send_string("Runner Status:\nRunning Tasks:\n" + "\n".join(running) + "\nPending Tasks:\n" + "\n".join(pending))
 
 
 @utils.register_to("cancel", _OPTION_IMPL)
 def cancel(message: dict):
-    idx = message["id"]
+    ids = message["ids"]
     msg = []
     # cancel CMD pending in message queue
     mq_lock.acquire()
     temp = []
     while not mq.empty():
         m: utils.PrioritizedItem = mq.get()
-        if m.item["id"] != idx:
+        if m.item["id"] not in ids:
             temp.append(m)
         else:
             msg.append(utils.format_msg(m.item))
@@ -78,19 +78,22 @@ def cancel(message: dict):
         mq.put(m)
     del temp
     mq_lock.release()
-    socket.send_string("\nCanceled CMDs:\n" + "\n".join(msg))
+    socket.send_string("\nCanceled Tasks:\n" + "\n".join(msg))
 
 
 @utils.register_to("history", _OPTION_IMPL)
 def history(message: dict):
-    msg = [utils.format_msg(m) for m in runner.history(message["num_records"])]
-    socket.send_string("\nFinished CMDs:\n" + "\n".join(msg))
+    if message["fail"]:
+        msg = "\nFailed Tasks:\n" + "\n".join([utils.format_msg(m) for m in runner.fail(message["num_records"])])
+    else:
+        msg = "\nSucceed Tasks:\n" + "\n".join([utils.format_msg(m) for m in runner.success(message["num_records"])])
+    socket.send_string(msg)
 
 
 @utils.register_to("kill", _OPTION_IMPL)
 def kill(message: dict):
-    msg = [utils.format_msg(m) for m in runner.kill(message["id"])]
-    socket.send_string("\nKilled CMDs:\n" + "\n".join(msg))
+    msg = [utils.format_msg(m) for m in runner.kill(message["ids"])]
+    socket.send_string("\nKilled Tasks:\n" + "\n".join(msg))
 
 
 if __name__ == "__main__":
@@ -99,7 +102,7 @@ if __name__ == "__main__":
     )
     # Required parameters
     parser.add_argument(
-        "--gpus", required=True, type=str, help="Only find free GPU among these GPUs, e.g., '0,1,2,3,4,5,6,7'."
+        "--gpus", required=True, type=int, nargs='+', help="Only find free GPU among these GPUs, e.g., '0 1 2 3'."
     )
     parser.add_argument(
         "--max-run", default=10000, type=int, help="The maximum number of pending tasks to run."
@@ -119,15 +122,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max-memory", default=0.1, type=float, help="The maximum memory of GPUs to be considered as not available."
     )
-    parser.add_argument(
-        "--check-interval", default=1, type=int, help="The time interval of checking available GPU resource."
-    )
     args = parser.parse_args()
 
     logger.info(args)
 
     # set up variables from args
-    hosted_gpus = [eval(gpu) for gpu in args.gpus.split(",")]
+    hosted_gpus = args.gpus
     utils.init(min(args.limit, len(hosted_gpus)), args.max_load, args.max_memory)
     with open("config.json", 'w') as f:
         json.dump({"port": args.port}, f)

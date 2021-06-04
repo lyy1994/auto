@@ -41,7 +41,7 @@ def status(args: argparse.Namespace):
 def cancel(args: argparse.Namespace):
     return {
         "option": args.option,
-        "id": args.id,
+        "ids": args.id,
     }
 
 
@@ -50,6 +50,7 @@ def history(args: argparse.Namespace):
     return {
         "option": args.option,
         "num_records": args.num_records,
+        "fail": args.fail,
     }
 
 
@@ -57,7 +58,7 @@ def history(args: argparse.Namespace):
 def kill(args: argparse.Namespace):
     return {
         "option": args.option,
-        "id": args.id,
+        "ids": args.id,
     }
 
 
@@ -93,17 +94,20 @@ if __name__ == "__main__":
     # for cancel option
     parser_cancel = subparsers.add_parser('cancel', help='Cancel a pending task.')
     parser_cancel.add_argument(
-        "--id", "-i", required=True, type=int, help="The task id you want to cancel."
+        "--id", "-i", required=True, type=int, nargs='+', help="The task id you want to cancel."
     )
     # for history option
     parser_history = subparsers.add_parser('history', help='Show finished tasks.')
     parser_history.add_argument(
-        "--num-records", "-n", default=-1, type=int, help="The number of finished CMDs you want to show."
+        "--num-records", "-n", default=-1, type=int, help="The number of finished tasks you want to show."
+    )
+    parser_history.add_argument(
+        "--fail", "-f", action="store_true", help="Show the failed tasks."
     )
     # for kill option
     parser_history = subparsers.add_parser('kill', help='Kill running tasks.')
     parser_history.add_argument(
-        "--id", "-i", required=True, type=int, help="The task id you want to kill."
+        "--id", "-i", required=True, type=int, nargs='+', help="The task id you want to kill."
     )
 
     args = parser.parse_args()
