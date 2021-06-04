@@ -24,7 +24,7 @@ _OPTION_IMPL = {}
 def run(args: argparse.Namespace):
     return {
         "option": args.option,
-        "n_gpus": args.n_gpus,
+        "num_gpus": args.num_gpus,
         "cmd": args.cmd,
         "priority": args.priority,
     }
@@ -49,7 +49,7 @@ def cancel(args: argparse.Namespace):
 def history(args: argparse.Namespace):
     return {
         "option": args.option,
-        "n": args.n,
+        "num_records": args.num_records,
     }
 
 
@@ -79,10 +79,10 @@ if __name__ == "__main__":
     # for run option
     parser_run = subparsers.add_parser('run', help='Run a task.')
     parser_run.add_argument(
-        "--n-gpus", default=1, type=int, help="The number of GPUs you want to allocate."
+        "--num-gpus", "-n", default=1, type=int, help="The number of GPUs you want to allocate."
     )
     parser_run.add_argument(
-        "--cmd", required=True, type=str, help="The task you want to run."
+        "--cmd", "-c", required=True, type=str, help="The task you want to run."
     )
     parser_run.add_argument(
         "--priority", "-p", default=10, type=int,
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     # for cancel option
     parser_cancel = subparsers.add_parser('cancel', help='Cancel a pending task.')
     parser_cancel.add_argument(
-        "--id", required=True, type=int, help="The task id you want to cancel."
+        "--id", "-i", required=True, type=int, help="The task id you want to cancel."
     )
     # for history option
     parser_history = subparsers.add_parser('history', help='Show finished tasks.')
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     # for kill option
     parser_history = subparsers.add_parser('kill', help='Kill running tasks.')
     parser_history.add_argument(
-        "--id", required=True, type=int, help="The task id you want to kill."
+        "--id", "-i", required=True, type=int, help="The task id you want to kill."
     )
 
     args = parser.parse_args()

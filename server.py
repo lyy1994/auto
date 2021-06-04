@@ -83,13 +83,7 @@ def cancel(message: dict):
 
 @utils.register_to("history", _OPTION_IMPL)
 def history(message: dict):
-    if message["n"] < 0 or message["n"] > len(runner.finished_info):
-        show = len(runner.finished_info)
-    else:
-        show = message["n"]
-    msg = []
-    for i in range(len(runner.finished_info) - show, len(runner.finished_info)):
-        msg.append(utils.format_msg(runner.finished_info[i]))
+    msg = [utils.format_msg(m) for m in runner.history(message["num_records"])]
     socket.send_string("\nFinished CMDs:\n" + "\n".join(msg))
 
 

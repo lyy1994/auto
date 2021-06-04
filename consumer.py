@@ -29,6 +29,7 @@ class Consumer(threading.Thread):
         # TODO: it is better to keep everything into a file for restoring in case of system crash.
         self.r_lock = threading.Lock()  # lock for running_info threading safety
         self.running_info = {}  # info about CMDs that are running
+        self.f_lock = threading.Lock()  # lock for finished_info threading safety
         self.finished_info = deque(maxlen=num_records)  # info about the most recent hist_size CMDs that are finished
 
     def kill(self, idx):
@@ -50,6 +51,18 @@ class Consumer(threading.Thread):
         self.r_lock.release()
         return msg
 
+    def history(self, num_records):
+        self.f_lock.acquire()
+        if num_records < 0 or num_records > len(self.finished_info):
+            show = len(self.finished_info)
+        else:
+            show = num_records
+        msg = []
+        for i in range(len(self.finished_info) - show, len(self.finished_info)):
+            msg.append(self.finished_info[i])
+        self.f_lock.release()
+        return msg
+
     def run(self) -> None:
         while True:
             # first check whether running CMDs is finished
@@ -63,13 +76,15 @@ class Consumer(threading.Thread):
                     m = self.running_info.pop(p)  # clean running record
                     self.r_lock.release()
                     m["time"] = str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
+                    self.f_lock.acquire()
                     self.finished_info.append(m)  # add to history
+                    self.f_lock.release()
             # then allocate resources to incoming CMDs
             if not self.mq.empty():
                 self.mq_lock.acquire()
                 msg: utils.PrioritizedItem = self.mq.get()
                 self.mq_lock.release()
-                n_gpus, cmd = msg.item["n_gpus"], msg.item["cmd"]
+                n_gpus, cmd = msg.item["num_gpus"], msg.item["cmd"]
                 gpus = utils.get_free_gpus(host_ids=self.hosted_gpus, exclude_ids=self.exclude_gpus)
                 if len(gpus) >= n_gpus:  # if there is enough resources, then run it
                     gpu = gpus[:n_gpus]

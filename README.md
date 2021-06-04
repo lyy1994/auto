@@ -57,12 +57,12 @@ You can submit your own tasks (in a form of commands) via the `run` option of th
 ```commandline
 python client.py run \
     --cmd "YOUR COMMAND1 && YOUR COMMAND2 && ..." \
-    --n-gpus 1 \
+    --num-gpus 1 \
     --priority 10
 ```
 
-- `--cmd`: **Required**, the commands you want to run.
-- `--n-gpus`: Optional, the number of GPUs required by the inputted commands, default is *1*.
+- `--cmd` or `-c`: **Required**, the commands you want to run.
+- `--num-gpus` or `-n`: Optional, the number of GPUs required by the inputted commands, default is *1*.
 - `--priority` or `-p`: Optional, the priority of the submitted task, default is *10*. The smaller the (int) number is, the higher the priority.
 
 **IMPORTANT NOTE**:
@@ -93,7 +93,7 @@ python client.py cancel \
     --id 1
 ```
 
-- `--id`: **Required**, the task ID you want to cancel.
+- `--id` or `-i`: **Required**, the task ID you want to cancel.
 
 **TODO**: 
 - [ ] Support cancelling multiple tasks via a list of ids, e.g., `1,2,3`.
@@ -106,7 +106,7 @@ python client.py kill \
     --id 1
 ```
 
-- `--id`: **Required**, the task ID you want to cancel.
+- `--id` or `-i`: **Required**, the task ID you want to cancel.
 
 **TODO**: 
 - [ ] Support killing multiple tasks via a list of ids, e.g., `1,2,3`.
