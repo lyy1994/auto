@@ -1,20 +1,10 @@
 import zmq
 import argparse
-import logging
 import os
-import sys
 import json
 
 import utils
-
-
-logging.basicConfig(
-    format="%(asctime)s | %(levelname)s | %(name)s > %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=os.environ.get("LOGLEVEL", "INFO").upper(),
-    stream=sys.stdout,
-)
-logger = logging.getLogger("client")
+import logger
 
 
 _OPTION_IMPL = {}
@@ -111,6 +101,10 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    logger.config(
+        format="%(asctime)s | %(levelname)s >> %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
     logger.info(args)
 
     # set up connection

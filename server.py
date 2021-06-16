@@ -1,7 +1,4 @@
 import argparse
-import logging
-import os
-import sys
 import queue
 import threading
 import json
@@ -9,16 +6,8 @@ import json
 import zmq
 
 import utils
+import logger
 from consumer import Consumer
-
-
-logging.basicConfig(
-    format="%(asctime)s | %(levelname)s | %(name)s > %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-    level=os.environ.get("LOGLEVEL", "INFO").upper(),
-    stream=sys.stdout,
-)
-logger = logging.getLogger("server")
 
 
 _OPTION_IMPL = {}
@@ -122,8 +111,16 @@ if __name__ == "__main__":
     parser.add_argument(
         "--max-memory", default=0.1, type=float, help="The maximum memory of GPUs to be considered as not available."
     )
+    parser.add_argument(
+        "--log-file", default=None, type=str, help="The file path to store the logging output."
+    )
     args = parser.parse_args()
 
+    logger.config(
+        format="%(asctime)s | %(levelname)s >> %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handler=args.log_file,
+    )
     logger.info(args)
 
     # set up variables from args

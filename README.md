@@ -32,7 +32,8 @@ nohup python server.py \
     --port 25647 \
     --limit 8 \
     --max-load 0.1 \
-    --max-memory 0.1 &
+    --max-memory 0.1 \
+    --log-file run.log &
 ```
 
 - `--gpus`: **Required**, the ids of GPUs you want to manage by the server.
@@ -42,6 +43,7 @@ nohup python server.py \
 - `--limit`: Optional, the maximum number of available GPUs allocated to each task, default is *min(8, #gpus)*.
 - `--max-load`: Optional, the maximum percentage of load for a GPU to be considered as *not available*, default is *0.1*.
 - `--max-memory`: Optional, the maximum percentage of memory for a GPU to be considered as *not available*, default is *0.1*.
+- `--log-file`: Optional, the file path to store the logging output, default is *None* (not storing anything).
 
 **TODO**: 
 - [ ] Logging status, outputs, etc. to files (for debugging, restoration, etc.).
