@@ -17,12 +17,20 @@ def config(format=None, datefmt=None, handler=None):
         _handler = open(handler, "a", encoding="utf-8")
 
 
-def info(msg):
+def _print(msg, level):
     print(_format %
           {
               "asctime": str(datetime.today().strftime(_datefmt)),
-              "levelname": info.__name__.upper(),
+              "levelname": level.upper(),
               "message": msg,
           }, file=_handler)
     if isinstance(_handler, TextIOWrapper):
         _handler.flush()
+
+
+def info(msg):
+    _print(msg, info.__name__)
+
+
+def warning(msg):
+    _print(msg, warning.__name__)

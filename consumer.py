@@ -81,7 +81,7 @@ class Consumer(threading.Thread):
                     self.r_lock.acquire()
                     m = self.running_info.pop(p)  # clean running record
                     self.r_lock.release()
-                    m["time"] = str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))
+                    m["end_time"] = str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))  # add finished time
                     if p.returncode is not None:  # just for safety, should not be None after calling .poll()
                         # add to history
                         if p.returncode == 0:
@@ -103,6 +103,8 @@ class Consumer(threading.Thread):
                     gpu = gpus[:n_gpus]
                     gpu_str = ",".join([str(i) for i in gpu])
                     msg.item["GPUs"] = gpu_str
+                    msg.item["submit_time"] = str(msg.item["submit_time"].strftime('%Y-%m-%d-%H:%M:%S'))  # convert time format
+                    msg.item["start_time"] = str(datetime.today().strftime('%Y-%m-%d-%H:%M:%S'))  # add start time
                     cmd = "export CUDA_VISIBLE_DEVICES={} && ".format(gpu_str) + cmd
                     p = subprocess.Popen(cmd, shell=True, preexec_fn=os.setsid)
                     self.exclude_gpus += gpu  # reserve GPUs for CMD

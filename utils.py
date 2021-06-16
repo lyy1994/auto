@@ -1,6 +1,7 @@
 import GPUtil
 from dataclasses import dataclass, field
 from typing import Any
+from datetime import datetime
 
 
 _limit = 1
@@ -25,6 +26,7 @@ def register_to(name: str, mapping: dict):
 @dataclass(order=True)
 class PrioritizedItem:
     priority: int
+    submit_time: datetime
     item: Any = field(compare=False)
 
 

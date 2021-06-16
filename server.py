@@ -5,6 +5,8 @@ import json
 
 import zmq
 
+from datetime import datetime
+
 import utils
 import logger
 from consumer import Consumer
@@ -25,7 +27,8 @@ def run(message: dict):
         mq_lock.release()
         return
     message["id"] = counter
-    mq.put(utils.PrioritizedItem(message["priority"], message))
+    message["submit_time"] = datetime.today()
+    mq.put(utils.PrioritizedItem(message["priority"], message["submit_time"], message))
     mq_lock.release()
     socket.send_string("Task id: {}".format(counter))
     counter = (counter + 1) % args.max_run

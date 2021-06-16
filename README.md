@@ -68,8 +68,9 @@ python client.py run \
 **IMPORTANT NOTE**:
 1. The `run` option simply runs tasks for you and it cannot inform you the result, i.e., whether they are success or not. It is your responsibility to check the final results (success or not) of your tasks, e.g., setting `-f` in the `history` option.
 2. The commands to run your tasks is passed to the server in a string format via `--cmd`. It is thus important to take care of the quotation mark in your command string if there is any.
+3. The `--priority` will only rank the pending tasks based on their priorities and has no effect on the running ones. For tasks with the same priority, they are ranked by their submit time.
 
-[comment]: <> (3. You should not run a shell script via `--cmd`, otherwise the server will not be able to restrict the task to run on the available GPUs &#40;it is implemented via `export CUDA_VISIBLE_DEVICES=...` and a shell script will open a new shell that does not contain `CUDA_VISIBLE_DEVICES` in the current shell&#41;. One way to resolve this issue is to pass `$CUDA_VISIBLE_DEVICES` to your shell script as an argument and write `export CUDA_VISIBLE_DEVICES=...` within your script.)
+[comment]: <> (4. You should not run a shell script via `--cmd`, otherwise the server will not be able to restrict the task to run on the available GPUs &#40;it is implemented via `export CUDA_VISIBLE_DEVICES=...` and a shell script will open a new shell that does not contain `CUDA_VISIBLE_DEVICES` in the current shell&#41;. One way to resolve this issue is to pass `$CUDA_VISIBLE_DEVICES` to your shell script as an argument and write `export CUDA_VISIBLE_DEVICES=...` within your script.)
 
 **TODO**: 
 - [ ] Support specifying CPUs & memory.
